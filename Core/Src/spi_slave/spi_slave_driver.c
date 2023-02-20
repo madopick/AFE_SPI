@@ -21,7 +21,7 @@ static uint8_t u8_spiSendBuff[SPI_BUFF_LEN];
 static uint8_t u8_spiRcvBuff[SPI_BUFF_LEN];
 
 
-uint8_t spi_slave_init(void)
+uint8_t u8Spi_Slave_init(void)
 {
 	hspi2.Instance 					= SPI2;
 	hspi2.Init.Mode 				= SPI_MODE_SLAVE;
@@ -81,7 +81,7 @@ uint8_t spi_slave_init(void)
   * @name   SPI_slave_send
   * @brief 	SPI slave Send Function
   *******************************************/
-uint8_t u8Func_spi_slave_send(uint8_t *u8p_data, uint16_t length)
+uint8_t u8Spi_Slave_send(uint8_t *u8p_data, uint16_t length)
 {
 	memcpy(u8_spiSendBuff, u8p_data, length);
 
@@ -91,12 +91,29 @@ uint8_t u8Func_spi_slave_send(uint8_t *u8p_data, uint16_t length)
 }
 
 
+uint8_t u8Spi_Slave_run(void)
+{
+	if(HAL_SPI_TransmitReceive_DMA(&hspi2,
+									(uint8_t *)u8_spiSendBuff,
+									(uint8_t *)u8_spiRcvBuff,
+									SPI_BUFF_LEN) != HAL_OK)
+
+	{
+		Error_Handler(__FILE__, __LINE__);
+	}
+
+	return HAL_OK;
+}
+
+
+
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
 		printf("TX CB\r\n");
-
+		void SPI_Callback(eSPIop_t eOps);
+		SPI_Callback(SPI_WRITE_CPLT);
 	}
 }
 
@@ -106,8 +123,9 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("RX CB\r\n");
-
+		printf("RX CB: %s\r\n", u8_spiRcvBuff);
+		memset(u8_spiRcvBuff, 0, SPI_BUFF_LEN);
+		SPI_Callback(SPI_READ_CPLT);
 	}
 }
 
@@ -116,8 +134,9 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("TXRX CB\r\n");
-
+		printf("TXRX CB: %s\r\n", u8_spiRcvBuff);
+		memset(u8_spiRcvBuff, 0, SPI_BUFF_LEN);
+		SPI_Callback(SPI_READ_CPLT);
 	}
 }
 

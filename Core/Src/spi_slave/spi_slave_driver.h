@@ -45,7 +45,9 @@ typedef struct
 
 
 
-uint8_t spi_slave_init(void);
-uint8_t u8Func_spi_slave_send(uint8_t *u8p_data, uint16_t length);
+uint8_t u8Spi_Slave_init(void);
+uint8_t u8Spi_Slave_send(uint8_t *u8p_data, uint16_t length);
+uint8_t u8Spi_Slave_run(void);
+void SPI_Callback(eSPIop_t eOps);
 
 #endif /* SRC_SPI_SLAVE_SPI_SLAVE_DRIVER_H_ */

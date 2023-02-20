@@ -31,8 +31,8 @@ extern "C" {
 #include <string.h>
 #include <stdio.h>
 
-#include "spi_slave_driver.h"
-#include "uart_driver.h"
+#include "../spi_slave/spi_slave_driver.h"
+#include "../uart/uart_driver.h"
 
 /* Private includes ----------------------------------------------------------*/
 

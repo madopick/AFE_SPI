@@ -57,7 +57,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   Uart_Init();
-  spi_slave_init();
+  u8Spi_Slave_init();
 
   printf("init ready\r\n");
 
@@ -69,11 +69,13 @@ int main(void)
 	  if (spi_flag & SPI_WRITE_CPLT)
 	  {
 		  spi_flag 	&= ~SPI_WRITE_CPLT;
+		  u8Spi_Slave_run();
 		  printf("spi write complete\r\n");
 	  }
 	  else if (spi_flag & SPI_READ_CPLT)
 	  {
 		  spi_flag 	&= ~SPI_READ_CPLT;
+		  u8Spi_Slave_run();
 		  printf("spi read complete\r\n");
 	  }
 	  else if (spi_flag & SPI_WR_UPDATE)
@@ -83,7 +85,7 @@ int main(void)
 	  }
 	  else
 	  {
-		  HAL_Delay(1000);
+		  HAL_Delay(100);
 	  }
 
 
@@ -211,6 +213,33 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   }
 
 }
+
+
+/************************************************************
+  * @brief EXTI line detection callbacks
+  * @param GPIO_Pin: Specifies the pins connected EXTI line
+  * @retval None
+  ***********************************************************/
+void SPI_Callback(eSPIop_t eOps)
+{
+  switch (eOps)
+  {
+	case SPI_READ_OP:
+	  spi_flag |= SPI_READ_CPLT;
+	  break;
+
+	case SPI_WRITE_OP:
+	  spi_flag |= SPI_WRITE_CPLT;
+	  break;
+
+	case SPI_IDLE_OP:
+	default:
+	  break;
+  }
+
+}
+
+
 
 
 
