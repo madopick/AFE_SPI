@@ -35,6 +35,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 
+static uint8_t spi_flag;
 
 /* Private user code ---------------------------------------------------------*/
 
@@ -63,8 +64,29 @@ int main(void)
   /* Infinite loop */
   while (1)
   {
-	  HAL_Delay(1000);
 	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
+	  if (spi_flag & SPI_WRITE_CPLT)
+	  {
+		  spi_flag 	&= ~SPI_WRITE_CPLT;
+		  printf("spi write complete\r\n");
+	  }
+	  else if (spi_flag & SPI_READ_CPLT)
+	  {
+		  spi_flag 	&= ~SPI_READ_CPLT;
+		  printf("spi read complete\r\n");
+	  }
+	  else if (spi_flag & SPI_WR_UPDATE)
+	  {
+		  spi_flag 	&= ~SPI_WR_UPDATE;
+		  printf("spi write update\r\n");
+	  }
+	  else
+	  {
+		  HAL_Delay(1000);
+	  }
+
+
   }
 }
 
@@ -161,6 +183,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull 	= GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
+  /* Enable and set EXTI lines 15 to 10 Interrupt */
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
   /*Configure GPIO pin : LD2_Pin */
   GPIO_InitStruct.Pin 	= LD2_Pin;
   GPIO_InitStruct.Mode 	= GPIO_MODE_OUTPUT_PP;
@@ -169,6 +195,23 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
 }
+
+
+
+/************************************************************
+  * @brief EXTI line detection callbacks
+  * @param GPIO_Pin: Specifies the pins connected EXTI line
+  * @retval None
+  ***********************************************************/
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if (GPIO_Pin == B1_Pin)
+  {
+	  spi_flag |= SPI_WR_UPDATE;
+  }
+
+}
+
 
 
 

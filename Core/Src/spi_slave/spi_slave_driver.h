@@ -12,6 +12,12 @@
 
 #define SPI_BUFF_LEN                                  ((uint8_t)0x05)
 
+
+#define SPI_WRITE_CPLT								 (1 << 0)
+#define SPI_READ_CPLT								 (1 << 1)
+#define SPI_WR_UPDATE								 (1 << 2)
+
+
 /************************************************************
  * @brief   SPI callback typedef
  *

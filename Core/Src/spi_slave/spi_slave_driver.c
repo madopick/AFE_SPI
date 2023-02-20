@@ -91,5 +91,53 @@ uint8_t u8Func_spi_slave_send(uint8_t *u8p_data, uint16_t length)
 }
 
 
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	if (hspi == &hspi2)
+	{
+		printf("TX CB\r\n");
+
+	}
+}
+
+
+
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	if (hspi == &hspi2)
+	{
+		printf("RX CB\r\n");
+
+	}
+}
+
+
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	if (hspi == &hspi2)
+	{
+		printf("TXRX CB\r\n");
+
+	}
+}
+
+
+/************************************************************
+  * @brief  DMA TX & RX
+  * @param
+  * @retval None
+  ***********************************************************/
+void DMA1_Stream3_IRQHandler (void)
+{
+	HAL_DMA_IRQHandler(hspi2.hdmarx);
+}
+
+void DMA1_Stream4_IRQHandler (void)
+{
+	HAL_DMA_IRQHandler(hspi2.hdmatx);
+}
+
+
+
 
 
