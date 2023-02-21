@@ -56,6 +56,8 @@ uint8_t u8Spi_Slave_init(void)
 	GPIO_InitStruct.Speed 	= GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET);
+
 	return (HAL_OK);
 }
 

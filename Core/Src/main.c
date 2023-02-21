@@ -28,13 +28,14 @@
 /* Private macro -------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
+TIM_HandleTypeDef 	htim1;
 
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
-
+static void MX_TIM1_Init(void);
 
 
 /* Private user code ---------------------------------------------------------*/
@@ -59,6 +60,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
+  MX_TIM1_Init();
   Uart_Init();
   u8Spi_Slave_init();
 
@@ -116,6 +118,79 @@ int main(void)
 
   }
 }
+
+
+
+
+/******************************************************************************
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  ****************************************************************************/
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	static uint8_t u8TimCnt;
+
+	if (htim->Instance == TIM1)
+	{
+		u8TimCnt += 1;
+
+		if(u8TimCnt > 200)
+		{
+			u8TimCnt = 0;
+			printf("TIM1 CB\r\n");
+		}
+	}
+}
+
+
+
+/****************************************************************
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  ***************************************************************/
+static void MX_TIM1_Init(void)
+{
+	uint32_t              uwTimclock = 0;
+	uint32_t              uwPrescalerValue = 0;
+
+	if(HAL_RCC_GetHCLKFreq() >= 180000000)
+	{
+		uwTimclock = 2*HAL_RCC_GetPCLK2Freq();
+	}
+	else
+	{
+		uwTimclock = HAL_RCC_GetPCLK2Freq();
+	}
+
+	/* TIM1 (use PCLK2) counter clock equal to 1MHz */
+	uwPrescalerValue = (uint32_t) ((uwTimclock / 1000000U) - 1U);				//uwPrescalerValue = 180;
+
+	htim1.Instance 				= TIM1;
+
+	//htim1.Init.Period 			= ((1000000U / 10000U) - 1U);  				//0.1 ms time base.
+	//htim1.Init.Period 			= ((1000000U / 1000U) - 1U);  				//1 ms time base.
+	htim1.Init.Period 			= ((1000000U / 100U) - 1U);  					//10 ms time base.
+
+	htim1.Init.Prescaler 		= uwPrescalerValue;
+	htim1.Init.ClockDivision 	= 0;
+	htim1.Init.CounterMode 		= TIM_COUNTERMODE_UP;
+
+	if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+	{
+		Error_Handler(__FILE__, __LINE__);
+	}
+
+	HAL_TIM_Base_Start_IT(&htim1);
+
+}
+
+
+
 
 /**
   * @brief System Clock Configuration
