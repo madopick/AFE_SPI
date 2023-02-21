@@ -30,6 +30,8 @@
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef 	htim1;
 
+/* External variables ---------------------------------------------------------*/
+extern SPI_HandleTypeDef hspi2;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -79,6 +81,11 @@ int main(void)
 	  if (spi_flag & SPI_WRITE_CPLT)
 	  {
 		  spi_flag 	&= ~SPI_WRITE_CPLT;
+		  HAL_TIM_Base_Stop_IT(&htim1);
+
+		  HAL_SPI_DMAStop(&hspi2);
+		  HAL_SPI_Abort(&hspi2);
+
 		  u8Spi_Slave_run();
 		  printf("spi write complete\r\n");
 	  }
@@ -112,6 +119,7 @@ int main(void)
 			  memcpy(spiSendBuff, "3RD", SPI_TX_BUFF_LEN);
 		  }
 
+		  HAL_TIM_Base_Start_IT(&htim1);
 		  u8Spi_Slave_sendOnly(spiSendBuff, SPI_TX_BUFF_LEN);
 
 	  }
@@ -142,6 +150,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		{
 			u8TimCnt = 0;
 			printf("TIM1 CB\r\n");
+
+			SPI_Callback(SPI_WRITE_OP);
 		}
 	}
 }
@@ -184,9 +194,6 @@ static void MX_TIM1_Init(void)
 	{
 		Error_Handler(__FILE__, __LINE__);
 	}
-
-	HAL_TIM_Base_Start_IT(&htim1);
-
 }
 
 
