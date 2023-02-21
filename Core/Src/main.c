@@ -35,10 +35,13 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 
-static uint8_t spi_flag;
+
 
 /* Private user code ---------------------------------------------------------*/
-
+static uint8_t spi_flag;
+static uint8_t spiSendBuff[SPI_BUFF_LEN];
+static uint8_t spiRcvBuff[SPI_BUFF_LEN];
+static uint8_t u8seq;
 /**
   * @brief  The application entry point.
   * @retval int
@@ -61,10 +64,16 @@ int main(void)
 
   printf("init ready\r\n");
 
+  memcpy(&spiSendBuff[0], "SLV", SPI_BUFF_LEN);
+  //u8Spi_Slave_sendRcv(spiSendBuff, spiRcvBuff, SPI_BUFF_LEN);
+  u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_BUFF_LEN);
+
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+
   /* Infinite loop */
   while (1)
   {
-	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
 
 	  if (spi_flag & SPI_WRITE_CPLT)
 	  {
@@ -75,6 +84,7 @@ int main(void)
 	  else if (spi_flag & SPI_READ_CPLT)
 	  {
 		  spi_flag 	&= ~SPI_READ_CPLT;
+		  memset(spiRcvBuff, 0, SPI_BUFF_LEN);
 		  u8Spi_Slave_run();
 		  printf("spi read complete\r\n");
 	  }
@@ -82,12 +92,28 @@ int main(void)
 	  {
 		  spi_flag 	&= ~SPI_WR_UPDATE;
 		  printf("spi write update\r\n");
-	  }
-	  else
-	  {
-		  HAL_Delay(100);
-	  }
 
+		  memset(&spiSendBuff[0], 0, SPI_BUFF_LEN);
+
+		  if (u8seq == 0)
+		  {
+			  u8seq = 1;
+		  	  memcpy(spiSendBuff, "TLV", SPI_BUFF_LEN);
+		  }
+		  else if (u8seq == 1)
+		  {
+			  u8seq = 2;
+			  memcpy(spiSendBuff, "XLV", SPI_BUFF_LEN);
+		  }
+		  else
+		  {
+			  u8seq = 0;
+			  memcpy(spiSendBuff, "SLV", SPI_BUFF_LEN);
+		  }
+
+		  u8Spi_Slave_sendOnly(spiSendBuff, SPI_BUFF_LEN);
+
+	  }
 
   }
 }
@@ -225,6 +251,7 @@ void SPI_Callback(eSPIop_t eOps)
   switch (eOps)
   {
 	case SPI_READ_OP:
+	case SPI_WRnRD_OP:
 	  spi_flag |= SPI_READ_CPLT;
 	  break;
 

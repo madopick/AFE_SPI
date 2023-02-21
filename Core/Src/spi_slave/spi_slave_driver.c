@@ -17,9 +17,6 @@ DMA_HandleTypeDef hdma_spi2_tx;
 
 static spiAFE_s spiAFE;
 
-static uint8_t u8_spiSendBuff[SPI_BUFF_LEN];
-static uint8_t u8_spiRcvBuff[SPI_BUFF_LEN];
-
 
 uint8_t u8Spi_Slave_init(void)
 {
@@ -35,29 +32,16 @@ uint8_t u8Spi_Slave_init(void)
 	hspi2.Init.CRCCalculation 		= SPI_CRCCALCULATION_DISABLE;
 	hspi2.Init.CRCPolynomial 		= 10;
 
-	memset(u8_spiRcvBuff, 0, sizeof(u8_spiRcvBuff));
-
 	if (HAL_SPI_Init(&hspi2) != HAL_OK)
 	{
 		Error_Handler(__FILE__, __LINE__);
 	}
 
-	spiAFE.e_SPIop 		= SPI_IDLE_OP;
-	spiAFE.u16_lenCnt 	= 0;
-	spiAFE.u16_lenThrs 	= 0;
+
+	spiAFE.u16_len 		= 0;
 	spiAFE.u8p_Rcvbuf	= NULL;
 	spiAFE.u8p_Sentbuf	= NULL;
 	spiAFE.vf_callback	= NULL;
-
-
-	if(HAL_SPI_TransmitReceive_DMA(&hspi2,
-									(uint8_t *)u8_spiSendBuff,
-									(uint8_t *)u8_spiRcvBuff,
-									SPI_BUFF_LEN) != HAL_OK)
-
-	{
-		Error_Handler(__FILE__, __LINE__);
-	}
 
 
 	///AFE GPIO PIN SETUP
@@ -76,14 +60,82 @@ uint8_t u8Spi_Slave_init(void)
 }
 
 
+/********************************************
+  * @name   SPI_slave_receive only
+  * @brief 	SPI slave receive Only Function
+  *******************************************/
+uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len)
+{
+	HAL_SPI_DMAStop(&hspi2);
+	HAL_SPI_Abort(&hspi2);
+
+	spiAFE.u8p_Rcvbuf 	= u8p_RcvBuff;
+	spiAFE.u16_len		= u16_len;
+
+	if (HAL_SPI_Receive_DMA(&hspi2,
+							(uint8_t *)spiAFE.u8p_Rcvbuf,
+							spiAFE.u16_len) != HAL_OK)
+
+	{
+		Error_Handler(__FILE__, __LINE__);
+	}
+
+	return HAL_OK;
+}
+
+
+
 
 /********************************************
-  * @name   SPI_slave_send
-  * @brief 	SPI slave Send Function
+  * @name   SPI_slave_send only
+  * @brief 	SPI slave Send Only Function
   *******************************************/
-uint8_t u8Spi_Slave_send(uint8_t *u8p_data, uint16_t length)
+uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len)
 {
-	memcpy(u8_spiSendBuff, u8p_data, length);
+	HAL_SPI_DMAStop(&hspi2);
+	HAL_SPI_Abort(&hspi2);
+
+	spiAFE.u8p_Sentbuf 	= u8p_SendBuff;
+	spiAFE.u16_len		= u16_len;
+
+	if (HAL_SPI_Transmit_DMA(&hspi2,
+							(uint8_t *)spiAFE.u8p_Sentbuf,
+							spiAFE.u16_len) != HAL_OK)
+
+	{
+		Error_Handler(__FILE__, __LINE__);
+	}
+
+
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET);
+	HAL_Delay(10);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
+
+	return HAL_OK;
+}
+
+
+/********************************************
+  * @name   SPI_slave_send receive
+  * @brief 	SPI slave Send Receive Function
+  *******************************************/
+uint8_t u8Spi_Slave_sendRcv(uint8_t *u8p_Senddata, uint8_t *u8p_Rcvdata, uint16_t length)
+{
+	HAL_SPI_DMAStop(&hspi2);
+	HAL_SPI_Abort(&hspi2);
+
+	spiAFE.u8p_Sentbuf 	= u8p_Senddata;
+	spiAFE.u8p_Rcvbuf 	= u8p_Rcvdata;
+	spiAFE.u16_len		= length;
+
+	if (HAL_SPI_TransmitReceive_DMA(&hspi2,
+									(uint8_t *)spiAFE.u8p_Sentbuf,
+									(uint8_t *)spiAFE.u8p_Rcvbuf,
+									spiAFE.u16_len) != HAL_OK)
+
+	{
+		Error_Handler(__FILE__, __LINE__);
+	}
 
 	//printf("SPI: [%d] - %s\r\n", u8_spiSendBuff[0], (char*)&u8_spiSendBuff[1]);
 
@@ -93,14 +145,27 @@ uint8_t u8Spi_Slave_send(uint8_t *u8p_data, uint16_t length)
 
 uint8_t u8Spi_Slave_run(void)
 {
-	if(HAL_SPI_TransmitReceive_DMA(&hspi2,
-									(uint8_t *)u8_spiSendBuff,
-									(uint8_t *)u8_spiRcvBuff,
-									SPI_BUFF_LEN) != HAL_OK)
+	memset(spiAFE.u8p_Rcvbuf, 0, spiAFE.u16_len);
+
+//	if (HAL_SPI_TransmitReceive_DMA(&hspi2,
+//									(uint8_t *)spiAFE.u8p_Sentbuf,
+//									(uint8_t *)spiAFE.u8p_Rcvbuf,
+//									spiAFE.u16_len) != HAL_OK)
+//
+//	{
+//		Error_Handler(__FILE__, __LINE__);
+//	}
+
+
+
+	if (HAL_SPI_Receive_DMA(&hspi2,
+							(uint8_t *)spiAFE.u8p_Rcvbuf,
+							spiAFE.u16_len) != HAL_OK)
 
 	{
 		Error_Handler(__FILE__, __LINE__);
 	}
+
 
 	return HAL_OK;
 }
@@ -112,8 +177,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 	if (hspi == &hspi2)
 	{
 		printf("TX CB\r\n");
-		void SPI_Callback(eSPIop_t eOps);
-		SPI_Callback(SPI_WRITE_CPLT);
+		SPI_Callback(SPI_WRITE_OP);
 	}
 }
 
@@ -123,9 +187,8 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("RX CB: %s\r\n", u8_spiRcvBuff);
-		memset(u8_spiRcvBuff, 0, SPI_BUFF_LEN);
-		SPI_Callback(SPI_READ_CPLT);
+		printf("RX CB: %s\r\n", spiAFE.u8p_Rcvbuf);
+		SPI_Callback(SPI_READ_OP);
 	}
 }
 
@@ -134,9 +197,8 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("TXRX CB: %s\r\n", u8_spiRcvBuff);
-		memset(u8_spiRcvBuff, 0, SPI_BUFF_LEN);
-		SPI_Callback(SPI_READ_CPLT);
+		printf("TXRX CB: %s\r\n", spiAFE.u8p_Rcvbuf);
+		SPI_Callback(SPI_WRnRD_OP);
 	}
 }
 
@@ -156,6 +218,59 @@ void DMA1_Stream4_IRQHandler (void)
 	HAL_DMA_IRQHandler(hspi2.hdmatx);
 }
 
+/*****************************************************************************
+  * @brief This function handles SPI2 global interrupt.
+  ****************************************************************************/
+void SPI2_IRQHandler(void)
+{
+	HAL_SPI_IRQHandler(&hspi2);
+}
+
+
+/*****************************************************************************
+  * @brief  SPI error callbacks
+  * @param  hspi: SPI handle
+  * @retval None
+  ***************************************************************************/
+ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
+{
+	 switch (hspi->ErrorCode)
+	 {
+		 case HAL_SPI_ERROR_MODF:
+			 printf("SPIE_MODF\r\n");
+			 break;
+
+		 case HAL_SPI_ERROR_CRC:
+			 printf("SPIE_CRC\r\n");
+			 break;
+
+		 case HAL_SPI_ERROR_OVR:
+			 printf("SPIE_OVR\r\n");
+			 break;
+
+		 case HAL_SPI_ERROR_FRE:
+			 printf("SPIE_FRE\r\n");
+			 break;
+
+		 case HAL_SPI_ERROR_DMA:
+			 printf("SPIE_DMA\r\n");
+			 break;
+
+		 case HAL_SPI_ERROR_FLAG:
+			 printf("SPIE_FLAG\r\n");
+			 break;
+
+		 case HAL_SPI_ERROR_ABORT:
+			 printf("SPIE_ABORT\r\n");
+			 break;
+
+		 default:
+			 printf("SPIE_DEF\r\n");
+			 break;
+	 }
+
+	 Error_Handler(__FILE__, __LINE__);
+}
 
 
 

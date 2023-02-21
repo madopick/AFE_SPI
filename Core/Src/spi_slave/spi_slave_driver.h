@@ -31,6 +31,7 @@ typedef enum
 	SPI_IDLE_OP,
 	SPI_READ_OP,
 	SPI_WRITE_OP,
+	SPI_WRnRD_OP,
 } eSPIop_t;
 
 typedef struct
@@ -38,15 +39,15 @@ typedef struct
 	SPIPeriphCallback 		vf_callback;
 	uint8_t*				u8p_Sentbuf;
 	uint8_t*				u8p_Rcvbuf;
-	eSPIop_t				e_SPIop;
-	uint16_t 				u16_lenThrs;
-	uint16_t 				u16_lenCnt;
+	uint16_t 				u16_len;
 } spiAFE_s;
 
 
 
 uint8_t u8Spi_Slave_init(void);
-uint8_t u8Spi_Slave_send(uint8_t *u8p_data, uint16_t length);
+uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len);
+uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len);
+uint8_t u8Spi_Slave_sendRcv(uint8_t *u8p_Senddata, uint8_t *u8p_Rcvdata, uint16_t length);
 uint8_t u8Spi_Slave_run(void);
 void SPI_Callback(eSPIop_t eOps);
 
