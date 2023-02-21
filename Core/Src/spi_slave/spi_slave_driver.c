@@ -47,14 +47,14 @@ uint8_t u8Spi_Slave_init(void)
 	///AFE GPIO PIN SETUP
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET);
+
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	GPIO_InitStruct.Pin 	= GPIO_PIN_3;
 	GPIO_InitStruct.Mode 	= GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull 	= GPIO_PULLUP;
+	GPIO_InitStruct.Pull 	= GPIO_PULLDOWN;
 	GPIO_InitStruct.Speed 	= GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
 
 	return (HAL_OK);
 }
@@ -107,9 +107,9 @@ uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len)
 	}
 
 
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET);
-	HAL_Delay(10);
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
+	HAL_Delay(10);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET);
 
 	return HAL_OK;
 }
