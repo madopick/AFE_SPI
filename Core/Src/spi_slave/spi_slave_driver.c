@@ -74,7 +74,7 @@ uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len)
 
 	if (HAL_SPI_Receive_DMA(&hspi2,
 							(uint8_t *)spiAFE.u8p_Rcvbuf,
-							spiAFE.u16_len) != HAL_OK)
+							SPI_RX_BUFF_LEN) != HAL_OK)
 
 	{
 		Error_Handler(__FILE__, __LINE__);
@@ -100,7 +100,7 @@ uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len)
 
 	if (HAL_SPI_Transmit_DMA(&hspi2,
 							(uint8_t *)spiAFE.u8p_Sentbuf,
-							spiAFE.u16_len) != HAL_OK)
+							SPI_TX_BUFF_LEN) != HAL_OK)
 
 	{
 		Error_Handler(__FILE__, __LINE__);
@@ -147,20 +147,9 @@ uint8_t u8Spi_Slave_run(void)
 {
 	memset(spiAFE.u8p_Rcvbuf, 0, spiAFE.u16_len);
 
-//	if (HAL_SPI_TransmitReceive_DMA(&hspi2,
-//									(uint8_t *)spiAFE.u8p_Sentbuf,
-//									(uint8_t *)spiAFE.u8p_Rcvbuf,
-//									spiAFE.u16_len) != HAL_OK)
-//
-//	{
-//		Error_Handler(__FILE__, __LINE__);
-//	}
-
-
-
 	if (HAL_SPI_Receive_DMA(&hspi2,
 							(uint8_t *)spiAFE.u8p_Rcvbuf,
-							spiAFE.u16_len) != HAL_OK)
+							SPI_RX_BUFF_LEN) != HAL_OK)
 
 	{
 		Error_Handler(__FILE__, __LINE__);
@@ -187,7 +176,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("RX CB: %s\r\n", spiAFE.u8p_Rcvbuf);
+		printf("RX CB: %s - %d\r\n", spiAFE.u8p_Rcvbuf, spiAFE.u8p_Rcvbuf[4]);
 		SPI_Callback(SPI_READ_OP);
 	}
 }
@@ -269,7 +258,7 @@ void SPI2_IRQHandler(void)
 			 break;
 	 }
 
-	 Error_Handler(__FILE__, __LINE__);
+
 }
 
 

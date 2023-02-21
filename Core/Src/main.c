@@ -39,8 +39,8 @@ static void MX_DMA_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 static uint8_t spi_flag;
-static uint8_t spiSendBuff[SPI_BUFF_LEN];
-static uint8_t spiRcvBuff[SPI_BUFF_LEN];
+static uint8_t spiSendBuff[SPI_TX_BUFF_LEN];
+static uint8_t spiRcvBuff[SPI_RX_BUFF_LEN];
 static uint8_t u8seq;
 /**
   * @brief  The application entry point.
@@ -64,9 +64,8 @@ int main(void)
 
   printf("init ready\r\n");
 
-  memcpy(&spiSendBuff[0], "SLV", SPI_BUFF_LEN);
-  //u8Spi_Slave_sendRcv(spiSendBuff, spiRcvBuff, SPI_BUFF_LEN);
-  u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_BUFF_LEN);
+  memcpy(&spiSendBuff[0], "SLV", SPI_TX_BUFF_LEN);
+  u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
 
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 
@@ -84,7 +83,7 @@ int main(void)
 	  else if (spi_flag & SPI_READ_CPLT)
 	  {
 		  spi_flag 	&= ~SPI_READ_CPLT;
-		  memset(spiRcvBuff, 0, SPI_BUFF_LEN);
+		  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN);
 		  u8Spi_Slave_run();
 		  printf("spi read complete\r\n");
 	  }
@@ -93,25 +92,25 @@ int main(void)
 		  spi_flag 	&= ~SPI_WR_UPDATE;
 		  printf("spi write update\r\n");
 
-		  memset(&spiSendBuff[0], 0, SPI_BUFF_LEN);
+		  memset(&spiSendBuff[0], 0, SPI_TX_BUFF_LEN);
 
 		  if (u8seq == 0)
 		  {
 			  u8seq = 1;
-		  	  memcpy(spiSendBuff, "TLV", SPI_BUFF_LEN);
+		  	  memcpy(spiSendBuff, "1ST", SPI_TX_BUFF_LEN);
 		  }
 		  else if (u8seq == 1)
 		  {
 			  u8seq = 2;
-			  memcpy(spiSendBuff, "XLV", SPI_BUFF_LEN);
+			  memcpy(spiSendBuff, "2ND", SPI_TX_BUFF_LEN);
 		  }
 		  else
 		  {
 			  u8seq = 0;
-			  memcpy(spiSendBuff, "SLV", SPI_BUFF_LEN);
+			  memcpy(spiSendBuff, "3RD", SPI_TX_BUFF_LEN);
 		  }
 
-		  u8Spi_Slave_sendOnly(spiSendBuff, SPI_BUFF_LEN);
+		  u8Spi_Slave_sendOnly(spiSendBuff, SPI_TX_BUFF_LEN);
 
 	  }
 
