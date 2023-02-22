@@ -92,6 +92,18 @@ int main(void)
 	  else if (spi_flag & SPI_READ_CPLT)
 	  {
 		  spi_flag 	&= ~SPI_READ_CPLT;
+
+		  printf("\r\nspi read: \r\n");
+		  for(uint16_t i = 0; i < SPI_RX_BUFF_LEN; i++)
+		  {
+			  printf("%d ", spiRcvBuff[i]);
+			  if (i % 10 == 0)
+			  {
+				  printf("\r\n");
+			  }
+		  }
+
+
 		  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN);
 		  u8Spi_Slave_run();
 		  printf("spi read complete\r\n");
@@ -168,7 +180,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			u8TimCnt = 0;
 			HAL_TIM_Base_Stop_IT(&htim1);
 			printf("TIM1 CB\r\n");
-			SPI_Callback(SPI_WRITE_OP);
+			SPI_Callback(SPI_TO_OP);
 		}
 	}
 }
@@ -358,6 +370,9 @@ void SPI_Callback(eSPIop_t eOps)
 	  break;
 
 	case SPI_TO_OP:
+	  spi_flag |= SPI_TIMEOUT;
+	  break;
+
 	case SPI_IDLE_OP:
 	default:
 	  break;

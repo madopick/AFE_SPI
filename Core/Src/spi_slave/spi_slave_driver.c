@@ -202,7 +202,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("RX CB: %s - %d\r\n", spiAFE.u8p_Rcvbuf, spiAFE.u8p_Rcvbuf[4]);
+		printf("RX CB\r\n");
 		SPI_Callback(SPI_READ_OP);
 	}
 }
@@ -284,7 +284,7 @@ void SPI2_IRQHandler(void)
 			 break;
 	 }
 
-
+	 SPI_Callback(SPI_TO_OP);
 }
 
 
