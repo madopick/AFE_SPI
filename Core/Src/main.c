@@ -101,6 +101,12 @@ int main(void)
 		  spi_flag 	&= ~SPI_WR_UPDATE;
 		  printf("spi write update\r\n");
 
+		  if ((spi_flag & SPI_GPIO_INIT) == 0)
+		  {
+			  spi_flag |= SPI_GPIO_INIT;
+			  u8Spi_Gpio_Init();
+		  }
+
 		  memset(&spiSendBuff[0], 0, SPI_TX_BUFF_LEN);
 
 		  if (u8seq == 0)
@@ -119,7 +125,7 @@ int main(void)
 			  memcpy(spiSendBuff, "3RD", SPI_TX_BUFF_LEN);
 		  }
 
-		  HAL_TIM_Base_Start_IT(&htim1);
+		  //HAL_TIM_Base_Start_IT(&htim1);
 		  u8Spi_Slave_sendOnly(spiSendBuff, SPI_TX_BUFF_LEN);
 
 	  }
@@ -344,6 +350,8 @@ void SPI_Callback(eSPIop_t eOps)
 	default:
 	  break;
   }
+
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
 
 }
 

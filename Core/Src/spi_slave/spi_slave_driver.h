@@ -10,13 +10,14 @@
 
 #include "main.h"
 
-#define SPI_TX_BUFF_LEN                              10
-#define SPI_RX_BUFF_LEN                              10
+#define SPI_TX_BUFF_LEN                              256
+#define SPI_RX_BUFF_LEN                              256
 
 
 #define SPI_WRITE_CPLT								 (1 << 0)
 #define SPI_READ_CPLT								 (1 << 1)
 #define SPI_WR_UPDATE								 (1 << 2)
+#define SPI_GPIO_INIT								 (1 << 3)
 
 
 /************************************************************
@@ -46,6 +47,7 @@ typedef struct
 
 
 uint8_t u8Spi_Slave_init(void);
+uint8_t u8Spi_Gpio_Init(void);
 uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len);
 uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len);
 uint8_t u8Spi_Slave_sendRcv(uint8_t *u8p_Senddata, uint8_t *u8p_Rcvdata, uint16_t length);

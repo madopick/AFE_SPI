@@ -18,6 +18,10 @@ DMA_HandleTypeDef hdma_spi2_tx;
 static spiAFE_s spiAFE;
 
 
+/********************************************
+  * @name   SPI_GPIO pins setup
+  * @brief
+  *******************************************/
 uint8_t u8Spi_Slave_init(void)
 {
 	hspi2.Instance 					= SPI2;
@@ -43,20 +47,27 @@ uint8_t u8Spi_Slave_init(void)
 	spiAFE.u8p_Sentbuf	= NULL;
 	spiAFE.vf_callback	= NULL;
 
+	return (HAL_OK);
+}
 
+
+/********************************************
+  * @name   SPI_GPIO pins setup
+  * @brief
+  *******************************************/
+uint8_t u8Spi_Gpio_Init(void)
+{
 	///AFE GPIO PIN SETUP
 	__HAL_RCC_GPIOC_CLK_ENABLE();
-
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET);
 
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	GPIO_InitStruct.Pin 	= GPIO_PIN_3;
 	GPIO_InitStruct.Mode 	= GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull 	= GPIO_PULLDOWN;
+	GPIO_InitStruct.Pull 	= GPIO_NOPULL;
 	GPIO_InitStruct.Speed 	= GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
 
 	return (HAL_OK);
 }
@@ -68,8 +79,10 @@ uint8_t u8Spi_Slave_init(void)
   *******************************************/
 uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len)
 {
-	HAL_SPI_DMAStop(&hspi2);
-	HAL_SPI_Abort(&hspi2);
+	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
+	{
+		HAL_Delay(10);
+	}
 
 	spiAFE.u8p_Rcvbuf 	= u8p_RcvBuff;
 	spiAFE.u16_len		= u16_len;
@@ -95,7 +108,15 @@ uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len)
 uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len)
 {
 	HAL_SPI_DMAStop(&hspi2);
+
 	HAL_SPI_Abort(&hspi2);
+	__HAL_RCC_SPI2_FORCE_RESET();
+	__HAL_RCC_SPI2_RELEASE_RESET();
+
+	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
+	{
+		HAL_Delay(10);
+	}
 
 	spiAFE.u8p_Sentbuf 	= u8p_SendBuff;
 	spiAFE.u16_len		= u16_len;
@@ -108,9 +129,6 @@ uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len)
 		Error_Handler(__FILE__, __LINE__);
 	}
 
-
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
-	HAL_Delay(10);
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET);
 
 	return HAL_OK;
@@ -123,8 +141,10 @@ uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len)
   *******************************************/
 uint8_t u8Spi_Slave_sendRcv(uint8_t *u8p_Senddata, uint8_t *u8p_Rcvdata, uint16_t length)
 {
-	HAL_SPI_DMAStop(&hspi2);
-	HAL_SPI_Abort(&hspi2);
+	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
+	{
+		HAL_Delay(10);
+	}
 
 	spiAFE.u8p_Sentbuf 	= u8p_Senddata;
 	spiAFE.u8p_Rcvbuf 	= u8p_Rcvdata;
@@ -148,6 +168,11 @@ uint8_t u8Spi_Slave_sendRcv(uint8_t *u8p_Senddata, uint8_t *u8p_Rcvdata, uint16_
 uint8_t u8Spi_Slave_run(void)
 {
 	memset(spiAFE.u8p_Rcvbuf, 0, spiAFE.u16_len);
+
+	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
+	{
+		HAL_Delay(10);
+	}
 
 	if (HAL_SPI_Receive_DMA(&hspi2,
 							(uint8_t *)spiAFE.u8p_Rcvbuf,
