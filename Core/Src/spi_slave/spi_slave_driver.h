@@ -18,7 +18,7 @@
 #define SPI_READ_CPLT								 (1 << 1)
 #define SPI_WR_UPDATE								 (1 << 2)
 #define SPI_GPIO_INIT								 (1 << 3)
-
+#define SPI_TIMEOUT									 (1 << 4)
 
 /************************************************************
  * @brief   SPI callback typedef
@@ -34,6 +34,7 @@ typedef enum
 	SPI_READ_OP,
 	SPI_WRITE_OP,
 	SPI_WRnRD_OP,
+	SPI_TO_OP
 } eSPIop_t;
 
 typedef struct

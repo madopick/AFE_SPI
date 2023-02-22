@@ -108,7 +108,6 @@ uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len)
 uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len)
 {
 	HAL_SPI_DMAStop(&hspi2);
-
 	HAL_SPI_Abort(&hspi2);
 	__HAL_RCC_SPI2_FORCE_RESET();
 	__HAL_RCC_SPI2_RELEASE_RESET();
@@ -167,7 +166,7 @@ uint8_t u8Spi_Slave_sendRcv(uint8_t *u8p_Senddata, uint8_t *u8p_Rcvdata, uint16_
 
 uint8_t u8Spi_Slave_run(void)
 {
-	memset(spiAFE.u8p_Rcvbuf, 0, spiAFE.u16_len);
+	memset(spiAFE.u8p_Rcvbuf, 0, SPI_RX_BUFF_LEN);
 
 	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
 	{

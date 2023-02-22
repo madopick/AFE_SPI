@@ -125,9 +125,20 @@ int main(void)
 			  memcpy(spiSendBuff, "3RD", SPI_TX_BUFF_LEN);
 		  }
 
-		  //HAL_TIM_Base_Start_IT(&htim1);
+		  HAL_TIM_Base_Start_IT(&htim1);
 		  u8Spi_Slave_sendOnly(spiSendBuff, SPI_TX_BUFF_LEN);
 
+	  }
+	  else if (spi_flag & SPI_TIMEOUT)
+	  {
+		  spi_flag 	&= ~SPI_TIMEOUT;
+
+		  HAL_SPI_DMAStop(&hspi2);
+		  HAL_SPI_Abort(&hspi2);
+		  __HAL_RCC_SPI2_FORCE_RESET();
+		  __HAL_RCC_SPI2_RELEASE_RESET();
+
+		  u8Spi_Slave_run();
 	  }
 
   }
@@ -152,11 +163,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	{
 		u8TimCnt += 1;
 
-		if(u8TimCnt > 200)
+		if(u8TimCnt > 100)
 		{
 			u8TimCnt = 0;
+			HAL_TIM_Base_Stop_IT(&htim1);
 			printf("TIM1 CB\r\n");
-
 			SPI_Callback(SPI_WRITE_OP);
 		}
 	}
@@ -346,6 +357,7 @@ void SPI_Callback(eSPIop_t eOps)
 	  spi_flag |= SPI_WRITE_CPLT;
 	  break;
 
+	case SPI_TO_OP:
 	case SPI_IDLE_OP:
 	default:
 	  break;
