@@ -87,7 +87,7 @@ int main(void)
 		  HAL_SPI_Abort(&hspi2);
 
 		  u8Spi_Slave_run();
-		  printf("spi write complete\r\n");
+		  printf("spi write complete\r\n\n");
 	  }
 	  else if (spi_flag & SPI_READ_CPLT)
 	  {
@@ -97,21 +97,17 @@ int main(void)
 		  for(uint16_t i = 0; i < SPI_RX_BUFF_LEN; i++)
 		  {
 			  printf("%d ", spiRcvBuff[i]);
-			  if (i % 10 == 0)
-			  {
-				  printf("\r\n");
-			  }
 		  }
-
 
 		  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN);
 		  u8Spi_Slave_run();
-		  printf("spi read complete\r\n");
+		  printf("\r\nspi read complete\r\n\n");
 	  }
 	  else if (spi_flag & SPI_WR_UPDATE)
 	  {
 		  spi_flag 	&= ~SPI_WR_UPDATE;
 		  printf("spi write update\r\n");
+
 
 		  if ((spi_flag & SPI_GPIO_INIT) == 0)
 		  {
@@ -121,6 +117,7 @@ int main(void)
 
 		  memset(&spiSendBuff[0], 0, SPI_TX_BUFF_LEN);
 
+#if 1
 		  if (u8seq == 0)
 		  {
 			  u8seq = 1;
@@ -136,6 +133,12 @@ int main(void)
 			  u8seq = 0;
 			  memcpy(spiSendBuff, "3RD", SPI_TX_BUFF_LEN);
 		  }
+#else
+		  for(uint16_t i = 0; i < SPI_TX_BUFF_LEN; i++)
+		  {
+			  spiSendBuff[i] = i;
+		  }
+#endif
 
 		  HAL_TIM_Base_Start_IT(&htim1);
 		  u8Spi_Slave_sendOnly(spiSendBuff, SPI_TX_BUFF_LEN);
@@ -175,7 +178,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	{
 		u8TimCnt += 1;
 
-		if(u8TimCnt > 100)
+		if(u8TimCnt > 50)
 		{
 			u8TimCnt = 0;
 			HAL_TIM_Base_Stop_IT(&htim1);

@@ -30,7 +30,7 @@ uint8_t u8Spi_Slave_init(void)
 	hspi2.Init.DataSize 			= SPI_DATASIZE_8BIT;
 	hspi2.Init.CLKPhase 			= SPI_PHASE_1EDGE;
 	hspi2.Init.CLKPolarity 			= SPI_POLARITY_LOW;
-	hspi2.Init.NSS 					= SPI_NSS_SOFT;
+	hspi2.Init.NSS 					= SPI_NSS_HARD_INPUT;
 	hspi2.Init.FirstBit 			= SPI_FIRSTBIT_MSB;
 	hspi2.Init.TIMode 				= SPI_TIMODE_DISABLE;
 	hspi2.Init.CRCCalculation 		= SPI_CRCCALCULATION_DISABLE;
@@ -191,7 +191,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("TX CB\r\n");
+		//printf("TX CB\r\n");
 		SPI_Callback(SPI_WRITE_OP);
 	}
 }
@@ -202,7 +202,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("RX CB\r\n");
+		//printf("RX CB\r\n");
 		SPI_Callback(SPI_READ_OP);
 	}
 }
@@ -212,7 +212,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("TXRX CB: %s\r\n", spiAFE.u8p_Rcvbuf);
+		//printf("TXRX CB: %s\r\n", spiAFE.u8p_Rcvbuf);
 		SPI_Callback(SPI_WRnRD_OP);
 	}
 }
