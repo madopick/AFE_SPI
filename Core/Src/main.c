@@ -38,7 +38,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_TIM1_Init(void);
-
+static uint8_t vSPIcmdParse(uint8_t *u8p_buff, uint16_t u16_len);
 
 /* Private user code ---------------------------------------------------------*/
 static uint8_t spi_flag;
@@ -68,11 +68,9 @@ int main(void)
   Uart_Init();
   u8Spi_Slave_init();
 
-  printf("init ready\r\n");
+  printf("INIT OK\r\n");
 
-  memcpy(&spiSendBuff[0], "SLV", SPI_TX_BUFF_LEN);
   u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
-
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 
   /* Infinite loop */
@@ -99,20 +97,19 @@ int main(void)
 	  {
 		  spi_flag 	&= ~SPI_READ_CPLT;
 
-		  printf("\r\nspi read: \r\n");
-		  for(uint16_t i = 0; i < SPI_RX_BUFF_LEN; i++)
+		  if (vSPIcmdParse(spiRcvBuff, SPI_RX_BUFF_LEN) == 0)
 		  {
-			  printf("%d ", spiRcvBuff[i]);
-			  if (i % 10 == 0)
-			  {
-				  printf("\r\n");
-			  }
+			  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN);
+			  u8Spi_Slave_run();
+		  }
+		  else
+		  {
+			  /* send reply */
+			  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN);
+			  spi_flag |= SPI_WR_UPDATE;
 		  }
 
-		  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN);
-		  u8Spi_Slave_run();
-
-		  printf("\r\nspi read complete\r\n\n");
+		  printf("spi read complete\r\n\n");
 	  }
 	  else if (spi_flag & SPI_WR_UPDATE)
 	  {
@@ -127,6 +124,7 @@ int main(void)
 
 		  memset(&spiSendBuff[0], 0, SPI_TX_BUFF_LEN);
 
+#if 0
 		  if (u8seq == 0)
 		  {
 			  u8seq = 1;
@@ -142,6 +140,12 @@ int main(void)
 			  u8seq = 0;
 			  memcpy(spiSendBuff, "3RD", SPI_TX_BUFF_LEN);
 		  }
+#else
+		  for(uint16_t i = 0; i < SPI_TX_BUFF_LEN; i++)
+		  {
+			  spiSendBuff[i] = i;
+		  }
+#endif
 
 		  HAL_TIM_Base_Start_IT(&htim1);
 		  u8Spi_Slave_sendOnly(spiSendBuff, SPI_TX_BUFF_LEN);
@@ -164,6 +168,67 @@ int main(void)
   }
 }
 
+
+/******************************************************************************
+  * @brief  Hanlde SPI command parsing
+  * @param
+  * @retval None
+  ****************************************************************************/
+static uint8_t vSPIcmdParse(uint8_t *u8p_buff, uint16_t u16_len)
+{
+	uint8_t retval = 0;
+
+	printf("CMD: %d - %d - %d %d \r\n", u8p_buff[SPI_MODE_BYTE],
+										u8p_buff[SPI_WRITE_CMD_BYTE],
+										u8p_buff[SPI_WRITE_PRM_BYTE],
+										u8p_buff[SPI_WRITE_PRM_BYTE+1]);
+
+	switch (u8p_buff[SPI_MODE_BYTE])
+	{
+		case SPI_WRITE_REQ:
+			if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_ON)
+			{
+				printf("scan ON\r\n");
+				retval = 1;
+			}
+			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_OFF)
+			{
+				printf("scan OFF\r\n");
+				retval = 1;
+			}
+			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_NOISE)
+			{
+				printf("scan noise\r\n");
+				retval = 1;
+			}
+			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_SELF_TX)
+			{
+				printf("scan self tx\r\n");
+				retval = 1;
+			}
+			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_SELF_RX)
+			{
+				printf("scan self rx\r\n");
+				retval = 1;
+			}
+			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_MUTUAL)
+			{
+				printf("scan mutual\r\n");
+				retval = 1;
+			}
+			break;
+
+		case SPI_READ_REQ:
+			printf("read request\r\n");
+			break;
+
+		default:
+			printf("unknown cmd\r\n");
+			break;
+	}
+
+	return (retval);
+}
 
 
 
