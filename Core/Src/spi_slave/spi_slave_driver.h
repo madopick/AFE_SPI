@@ -11,7 +11,7 @@
 #include "main.h"
 
 #define SPI_TX_BUFF_LEN                              256
-#define SPI_RX_BUFF_LEN                              10
+#define SPI_RX_BUFF_LEN                              256
 
 
 #define SPI_WRITE_CPLT								 (1 << 0)
