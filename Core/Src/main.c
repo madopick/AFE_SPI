@@ -45,6 +45,8 @@ static uint8_t spi_flag;
 static uint8_t spiSendBuff[SPI_TX_BUFF_LEN];
 static uint8_t spiRcvBuff[SPI_RX_BUFF_LEN];
 static uint8_t u8seq;
+static uint8_t u8btnPressed;
+
 /**
   * @brief  The application entry point.
   * @retval int
@@ -85,8 +87,12 @@ int main(void)
 
 		  HAL_SPI_DMAStop(&hspi2);
 		  HAL_SPI_Abort(&hspi2);
+		  __HAL_RCC_SPI2_FORCE_RESET();
+		  __HAL_RCC_SPI2_RELEASE_RESET();
 
 		  u8Spi_Slave_run();
+		  u8btnPressed = 0;
+
 		  printf("spi write complete\r\n\n");
 	  }
 	  else if (spi_flag & SPI_READ_CPLT)
@@ -103,9 +109,9 @@ int main(void)
 			  }
 		  }
 
-
 		  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN);
 		  u8Spi_Slave_run();
+
 		  printf("\r\nspi read complete\r\n\n");
 	  }
 	  else if (spi_flag & SPI_WR_UPDATE)
@@ -151,6 +157,8 @@ int main(void)
 		  __HAL_RCC_SPI2_RELEASE_RESET();
 
 		  u8Spi_Slave_run();
+
+		  u8btnPressed = 0;
 	  }
 
   }
@@ -343,9 +351,10 @@ static void MX_GPIO_Init(void)
   ***********************************************************/
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  if (GPIO_Pin == B1_Pin)
+  if ((GPIO_Pin == B1_Pin) && (u8btnPressed == 0))
   {
 	  spi_flag |= SPI_WR_UPDATE;
+	  u8btnPressed = 1;
   }
 
 }
