@@ -93,7 +93,7 @@ uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len)
 	spiAFE.u8p_Rcvbuf 	= u8p_RcvBuff;
 	spiAFE.u16_len		= u16_len;
 
-	if (HAL_SPI_Receive_DMA(&hspi2,
+	if (HAL_SPI_Receive_IT(&hspi2,
 							(uint8_t *)spiAFE.u8p_Rcvbuf,
 							SPI_RX_BUFF_LEN) != HAL_OK)
 
@@ -113,20 +113,15 @@ uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len)
   *******************************************/
 uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len)
 {
-	HAL_SPI_DMAStop(&hspi2);
-	HAL_SPI_Abort(&hspi2);
-	__HAL_RCC_SPI2_FORCE_RESET();
-	__HAL_RCC_SPI2_RELEASE_RESET();
-
-	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
-	{
-		HAL_Delay(10);
-	}
+//	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
+//	{
+//		HAL_Delay(1);
+//	}
 
 	spiAFE.u8p_Sentbuf 	= u8p_SendBuff;
 	spiAFE.u16_len		= u16_len;
 
-	if (HAL_SPI_Transmit_DMA(&hspi2,
+	if (HAL_SPI_Transmit_IT(&hspi2,
 							(uint8_t *)spiAFE.u8p_Sentbuf,
 							SPI_TX_BUFF_LEN) != HAL_OK)
 
@@ -155,7 +150,7 @@ uint8_t u8Spi_Slave_sendRcv(uint8_t *u8p_Senddata, uint8_t *u8p_Rcvdata, uint16_
 	spiAFE.u8p_Rcvbuf 	= u8p_Rcvdata;
 	spiAFE.u16_len		= length;
 
-	if (HAL_SPI_TransmitReceive_DMA(&hspi2,
+	if (HAL_SPI_TransmitReceive_IT(&hspi2,
 									(uint8_t *)spiAFE.u8p_Sentbuf,
 									(uint8_t *)spiAFE.u8p_Rcvbuf,
 									spiAFE.u16_len) != HAL_OK)
@@ -165,28 +160,6 @@ uint8_t u8Spi_Slave_sendRcv(uint8_t *u8p_Senddata, uint8_t *u8p_Rcvdata, uint16_
 	}
 
 	//printf("SPI: [%d] - %s\r\n", u8_spiSendBuff[0], (char*)&u8_spiSendBuff[1]);
-
-	return HAL_OK;
-}
-
-
-uint8_t u8Spi_Slave_run(void)
-{
-	memset(spiAFE.u8p_Rcvbuf, 0, SPI_RX_BUFF_LEN);
-
-	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
-	{
-		HAL_Delay(10);
-	}
-
-	if (HAL_SPI_Receive_DMA(&hspi2,
-							(uint8_t *)spiAFE.u8p_Rcvbuf,
-							SPI_RX_BUFF_LEN) != HAL_OK)
-
-	{
-		Error_Handler(__FILE__, __LINE__);
-	}
-
 
 	return HAL_OK;
 }

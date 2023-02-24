@@ -71,7 +71,6 @@ int main(void)
   printf("INIT OK\r\n");
 
   u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 
   /* Infinite loop */
   while (1)
@@ -81,17 +80,22 @@ int main(void)
 	  if (spi_flag & SPI_WRITE_CPLT)
 	  {
 		  spi_flag 	&= ~SPI_WRITE_CPLT;
-		  HAL_TIM_Base_Stop_IT(&htim1);
 
-		  HAL_SPI_DMAStop(&hspi2);
-		  HAL_SPI_Abort(&hspi2);
-		  __HAL_RCC_SPI2_FORCE_RESET();
-		  __HAL_RCC_SPI2_RELEASE_RESET();
+		  if (!u8btnPressed)
+		  {
+			  HAL_TIM_Base_Stop_IT(&htim1);
 
-		  u8Spi_Slave_run();
-		  u8btnPressed = 0;
+			  //HAL_SPI_DMAStop(&hspi2);
+			  //HAL_SPI_Abort(&hspi2);
 
-		  printf("spi write complete\r\n\n");
+			  __HAL_RCC_DMA1_FORCE_RESET();
+			  __HAL_RCC_DMA1_RELEASE_RESET();
+			  __HAL_RCC_SPI2_FORCE_RESET();
+			  __HAL_RCC_SPI2_RELEASE_RESET();
+
+			  printf("spi write complete\r\n");
+			  u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
+		  }
 	  }
 	  else if (spi_flag & SPI_READ_CPLT)
 	  {
@@ -100,7 +104,7 @@ int main(void)
 		  if (vSPIcmdParse(spiRcvBuff, SPI_RX_BUFF_LEN) == 0)
 		  {
 			  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN);
-			  u8Spi_Slave_run();
+			  u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
 		  }
 		  else
 		  {
@@ -114,7 +118,7 @@ int main(void)
 	  else if (spi_flag & SPI_WR_UPDATE)
 	  {
 		  spi_flag 	&= ~SPI_WR_UPDATE;
-		  printf("spi write update\r\n");
+		  printf("\r\nspi write update\r\n");
 
 		  if ((spi_flag & SPI_GPIO_INIT) == 0)
 		  {
@@ -124,28 +128,17 @@ int main(void)
 
 		  memset(&spiSendBuff[0], 0, SPI_TX_BUFF_LEN);
 
-#if 0
-		  if (u8seq == 0)
-		  {
-			  u8seq = 1;
-		  	  memcpy(spiSendBuff, "1ST", SPI_TX_BUFF_LEN);
-		  }
-		  else if (u8seq == 1)
-		  {
-			  u8seq = 2;
-			  memcpy(spiSendBuff, "2ND", SPI_TX_BUFF_LEN);
-		  }
-		  else
-		  {
-			  u8seq = 0;
-			  memcpy(spiSendBuff, "3RD", SPI_TX_BUFF_LEN);
-		  }
-#else
+
 		  for(uint16_t i = 0; i < SPI_TX_BUFF_LEN; i++)
 		  {
 			  spiSendBuff[i] = i;
 		  }
-#endif
+
+		  //HAL_SPI_DMAStop(&hspi2);
+		  //HAL_SPI_Abort(&hspi2);
+		  __HAL_RCC_SPI2_FORCE_RESET();
+		  __HAL_RCC_SPI2_RELEASE_RESET();
+		  u8Spi_Slave_init();
 
 		  HAL_TIM_Base_Start_IT(&htim1);
 		  u8Spi_Slave_sendOnly(spiSendBuff, SPI_TX_BUFF_LEN);
@@ -155,14 +148,16 @@ int main(void)
 	  {
 		  spi_flag 	&= ~SPI_TIMEOUT;
 
-		  HAL_SPI_DMAStop(&hspi2);
-		  HAL_SPI_Abort(&hspi2);
+		  //HAL_SPI_DMAStop(&hspi2);
+		  //HAL_SPI_Abort(&hspi2);
 		  __HAL_RCC_SPI2_FORCE_RESET();
 		  __HAL_RCC_SPI2_RELEASE_RESET();
+		  u8Spi_Slave_init();
 
-		  u8Spi_Slave_run();
-
+		  u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
 		  u8btnPressed = 0;
+
+		  printf("timeout OK\r\n\n");
 	  }
 
   }
@@ -444,6 +439,7 @@ void SPI_Callback(eSPIop_t eOps)
 	  break;
 
 	case SPI_TO_OP:
+	  HAL_TIM_Base_Stop_IT(&htim1);
 	  spi_flag |= SPI_TIMEOUT;
 	  break;
 

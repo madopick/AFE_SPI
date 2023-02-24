@@ -11,7 +11,7 @@
 #include "main.h"
 
 #define SPI_TX_BUFF_LEN                              608
-#define SPI_RX_BUFF_LEN                              20
+#define SPI_RX_BUFF_LEN                              608
 
 
 #define SPI_WRITE_CPLT								 (1 << 0)
@@ -84,7 +84,7 @@ uint8_t u8Spi_Gpio_Init(void);
 uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len);
 uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len);
 uint8_t u8Spi_Slave_sendRcv(uint8_t *u8p_Senddata, uint8_t *u8p_Rcvdata, uint16_t length);
-uint8_t u8Spi_Slave_run(void);
+
 void SPI_Callback(eSPIop_t eOps);
 
 #endif /* SRC_SPI_SLAVE_SPI_SLAVE_DRIVER_H_ */

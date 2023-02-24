@@ -89,7 +89,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 
 	GPIO_InitStruct.Pin 		= GPIO_PIN_10;
 	GPIO_InitStruct.Mode 		= GPIO_MODE_AF_PP;
-	GPIO_InitStruct.Pull 		= GPIO_NOPULL;
+	GPIO_InitStruct.Pull 		= GPIO_PULLUP;
 	GPIO_InitStruct.Speed 		= GPIO_SPEED_FAST;
 	GPIO_InitStruct.Alternate 	= GPIO_AF5_SPI2;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -149,13 +149,13 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 	__HAL_LINKDMA(hspi,hdmatx,hdma_spi2_tx);
 
 	/* SPI2 interrupt Init */
-	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 15, 0);
+	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 13, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
 
-	HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 15, 1);
+	HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 13, 1);
 	HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
 
-	HAL_NVIC_SetPriority(SPI2_IRQn, 15, 2);
+	HAL_NVIC_SetPriority(SPI2_IRQn, 13, 2);
 	HAL_NVIC_EnableIRQ(SPI2_IRQn);
 	}
 }
