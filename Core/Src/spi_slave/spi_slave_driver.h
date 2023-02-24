@@ -10,8 +10,9 @@
 
 #include "main.h"
 
-#define SPI_TX_BUFF_LEN                              608
-#define SPI_RX_BUFF_LEN                              608
+
+#define SPI_TX_BUFF_LEN                              320
+#define SPI_RX_BUFF_LEN                              320
 
 
 #define SPI_WRITE_CPLT								 (1 << 0)
@@ -45,6 +46,10 @@
 #define SPI_SCAN_SELF_RX						0x14		//Start Scan Self RX.
 #define SPI_SCAN_MUTUAL							0x15		//Start Scan Mutual.
 
+#define SPI_CFG_NOISE							0x20		//Configure Noise setup.
+#define SPI_CFG_TX								0x21		//Configure Self TX setup.
+#define SPI_CFG_RX								0x22		//Configure Self RX setup.
+#define SPI_CFG_MUTUAL							0x23		//Configure mutual setup.
 
 //Byte 2 - WRITE PARAMETER
 #define SPI_WRITE_PRM_BYTE						0x02
@@ -72,8 +77,8 @@ typedef enum
 typedef struct
 {
 	SPIPeriphCallback 		vf_callback;
-	uint8_t*				u8p_Sentbuf;
-	uint8_t*				u8p_Rcvbuf;
+	int16_t*				i16p_Sentbuf;
+	int16_t*				i16p_Rcvbuf;
 	uint16_t 				u16_len;
 } spiAFE_s;
 
@@ -81,9 +86,10 @@ typedef struct
 
 uint8_t u8Spi_Slave_init(void);
 uint8_t u8Spi_Gpio_Init(void);
-uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len);
-uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len);
-uint8_t u8Spi_Slave_sendRcv(uint8_t *u8p_Senddata, uint8_t *u8p_Rcvdata, uint16_t length);
+uint8_t u8Spi_Slave_rcvOnly(int16_t *i16p_RcvBuff, uint16_t u16_len);
+uint8_t u8Spi_Slave_sendOnly(int16_t *i16p_SendBuff, uint16_t u16_len);
+uint8_t u8Spi_Slave_sendRcv(int16_t *i16p_Senddata, int16_t *i16p_Rcvdata, uint16_t length);
+uint8_t u8Spi_Slave_run(void);
 
 void SPI_Callback(eSPIop_t eOps);
 

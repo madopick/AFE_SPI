@@ -27,7 +27,7 @@ uint8_t u8Spi_Slave_init(void)
 	hspi2.Instance 					= SPI2;
 	hspi2.Init.Mode 				= SPI_MODE_SLAVE;
 	hspi2.Init.Direction 			= SPI_DIRECTION_2LINES;
-	hspi2.Init.DataSize 			= SPI_DATASIZE_8BIT;
+	hspi2.Init.DataSize 			= SPI_DATASIZE_16BIT;
 	hspi2.Init.CLKPhase 			= SPI_PHASE_1EDGE;
 	hspi2.Init.CLKPolarity 			= SPI_POLARITY_LOW;
 
@@ -49,8 +49,8 @@ uint8_t u8Spi_Slave_init(void)
 
 
 	spiAFE.u16_len 		= 0;
-	spiAFE.u8p_Rcvbuf	= NULL;
-	spiAFE.u8p_Sentbuf	= NULL;
+	spiAFE.i16p_Rcvbuf	= NULL;
+	spiAFE.i16p_Sentbuf	= NULL;
 	spiAFE.vf_callback	= NULL;
 
 	return (HAL_OK);
@@ -83,18 +83,18 @@ uint8_t u8Spi_Gpio_Init(void)
   * @name   SPI_slave_receive only
   * @brief 	SPI slave receive Only Function
   *******************************************/
-uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len)
+uint8_t u8Spi_Slave_rcvOnly(int16_t *i16p_RcvBuff, uint16_t u16_len)
 {
 	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
 	{
 		HAL_Delay(10);
 	}
 
-	spiAFE.u8p_Rcvbuf 	= u8p_RcvBuff;
+	spiAFE.i16p_Rcvbuf 	= i16p_RcvBuff;
 	spiAFE.u16_len		= u16_len;
 
 	if (HAL_SPI_Receive_IT(&hspi2,
-							(uint8_t *)spiAFE.u8p_Rcvbuf,
+							(uint8_t *)spiAFE.i16p_Rcvbuf,
 							SPI_RX_BUFF_LEN) != HAL_OK)
 
 	{
@@ -111,19 +111,14 @@ uint8_t u8Spi_Slave_rcvOnly(uint8_t *u8p_RcvBuff, uint16_t u16_len)
   * @name   SPI_slave_send only
   * @brief 	SPI slave Send Only Function
   *******************************************/
-uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len)
+uint8_t u8Spi_Slave_sendOnly(int16_t *i16p_SendBuff, uint16_t u16_len)
 {
-//	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
-//	{
-//		HAL_Delay(1);
-//	}
-
-	spiAFE.u8p_Sentbuf 	= u8p_SendBuff;
+	spiAFE.i16p_Sentbuf = i16p_SendBuff;
 	spiAFE.u16_len		= u16_len;
 
 	if (HAL_SPI_Transmit_IT(&hspi2,
-							(uint8_t *)spiAFE.u8p_Sentbuf,
-							SPI_TX_BUFF_LEN) != HAL_OK)
+							(uint8_t *)spiAFE.i16p_Sentbuf,
+							u16_len) != HAL_OK)
 
 	{
 		Error_Handler(__FILE__, __LINE__);
@@ -139,20 +134,20 @@ uint8_t u8Spi_Slave_sendOnly(uint8_t *u8p_SendBuff, uint16_t u16_len)
   * @name   SPI_slave_send receive
   * @brief 	SPI slave Send Receive Function
   *******************************************/
-uint8_t u8Spi_Slave_sendRcv(uint8_t *u8p_Senddata, uint8_t *u8p_Rcvdata, uint16_t length)
+uint8_t u8Spi_Slave_sendRcv(int16_t *i16p_Senddata, int16_t *i16p_Rcvdata, uint16_t length)
 {
 	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
 	{
 		HAL_Delay(10);
 	}
 
-	spiAFE.u8p_Sentbuf 	= u8p_Senddata;
-	spiAFE.u8p_Rcvbuf 	= u8p_Rcvdata;
+	spiAFE.i16p_Sentbuf = i16p_Senddata;
+	spiAFE.i16p_Rcvbuf 	= i16p_Rcvdata;
 	spiAFE.u16_len		= length;
 
 	if (HAL_SPI_TransmitReceive_IT(&hspi2,
-									(uint8_t *)spiAFE.u8p_Sentbuf,
-									(uint8_t *)spiAFE.u8p_Rcvbuf,
+									(uint8_t *)spiAFE.i16p_Sentbuf,
+									(uint8_t *)spiAFE.i16p_Rcvbuf,
 									spiAFE.u16_len) != HAL_OK)
 
 	{
@@ -170,7 +165,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("TX CB\r\n");
+		//printf("TX CB\r\n");
 		SPI_Callback(SPI_WRITE_OP);
 	}
 }
@@ -181,7 +176,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("RX CB\r\n");
+		//printf("RX CB\r\n");
 		SPI_Callback(SPI_READ_OP);
 	}
 }
@@ -191,7 +186,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &hspi2)
 	{
-		printf("TXRX CB: %s\r\n", spiAFE.u8p_Rcvbuf);
+		//printf("TXRX CB \r\n");
 		SPI_Callback(SPI_WRnRD_OP);
 	}
 }

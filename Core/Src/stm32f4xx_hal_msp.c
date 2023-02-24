@@ -89,7 +89,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 
 	GPIO_InitStruct.Pin 		= GPIO_PIN_10;
 	GPIO_InitStruct.Mode 		= GPIO_MODE_AF_PP;
-	GPIO_InitStruct.Pull 		= GPIO_PULLUP;
+	GPIO_InitStruct.Pull 		= GPIO_NOPULL;
 	GPIO_InitStruct.Speed 		= GPIO_SPEED_FAST;
 	GPIO_InitStruct.Alternate 	= GPIO_AF5_SPI2;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -114,8 +114,8 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 	hdma_spi2_rx.Init.Direction 			= DMA_PERIPH_TO_MEMORY;
 	hdma_spi2_rx.Init.PeriphInc 			= DMA_PINC_DISABLE;
 	hdma_spi2_rx.Init.MemInc 				= DMA_MINC_ENABLE;
-	hdma_spi2_rx.Init.PeriphDataAlignment 	= DMA_PDATAALIGN_BYTE;
-	hdma_spi2_rx.Init.MemDataAlignment 		= DMA_MDATAALIGN_BYTE;
+	hdma_spi2_rx.Init.PeriphDataAlignment 	= DMA_PDATAALIGN_HALFWORD;
+	hdma_spi2_rx.Init.MemDataAlignment 		= DMA_MDATAALIGN_HALFWORD;
 	hdma_spi2_rx.Init.Mode 					= DMA_NORMAL;
 	hdma_spi2_rx.Init.Priority 				= DMA_PRIORITY_HIGH;
 
@@ -136,8 +136,8 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 	hdma_spi2_tx.Init.Direction 			= DMA_MEMORY_TO_PERIPH;
 	hdma_spi2_tx.Init.PeriphInc 			= DMA_PINC_DISABLE;
 	hdma_spi2_tx.Init.MemInc 				= DMA_MINC_ENABLE;
-	hdma_spi2_tx.Init.PeriphDataAlignment 	= DMA_PDATAALIGN_BYTE;
-	hdma_spi2_tx.Init.MemDataAlignment 		= DMA_MDATAALIGN_BYTE;
+	hdma_spi2_tx.Init.PeriphDataAlignment 	= DMA_PDATAALIGN_HALFWORD;
+	hdma_spi2_tx.Init.MemDataAlignment 		= DMA_MDATAALIGN_HALFWORD;
 	hdma_spi2_tx.Init.Mode 					= DMA_NORMAL;
 	hdma_spi2_tx.Init.Priority 				= DMA_PRIORITY_LOW;
 

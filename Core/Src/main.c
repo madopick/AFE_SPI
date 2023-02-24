@@ -38,13 +38,12 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_TIM1_Init(void);
-static uint8_t vSPIcmdParse(uint8_t *u8p_buff, uint16_t u16_len);
+static uint8_t vSPIcmdParse(int16_t *i16p_buff, uint16_t u16_len);
 
 /* Private user code ---------------------------------------------------------*/
 static uint8_t spi_flag;
-static uint8_t spiSendBuff[SPI_TX_BUFF_LEN];
-static uint8_t spiRcvBuff[SPI_RX_BUFF_LEN];
-static uint8_t u8seq;
+static int16_t spiSendBuff[SPI_TX_BUFF_LEN];
+static int16_t spiRcvBuff[SPI_RX_BUFF_LEN];
 static uint8_t u8btnPressed;
 
 /**
@@ -53,6 +52,8 @@ static uint8_t u8btnPressed;
   */
 int main(void)
 {
+  uint8_t u8_spiParse;
+
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -68,6 +69,7 @@ int main(void)
   Uart_Init();
   u8Spi_Slave_init();
 
+  printf("\e[1;1H\e[2J");
   printf("INIT OK\r\n");
 
   u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
@@ -75,25 +77,20 @@ int main(void)
   /* Infinite loop */
   while (1)
   {
-
-
 	  if (spi_flag & SPI_WRITE_CPLT)
 	  {
 		  spi_flag 	&= ~SPI_WRITE_CPLT;
+
 
 		  if (!u8btnPressed)
 		  {
 			  HAL_TIM_Base_Stop_IT(&htim1);
 
-			  //HAL_SPI_DMAStop(&hspi2);
-			  //HAL_SPI_Abort(&hspi2);
-
-			  __HAL_RCC_DMA1_FORCE_RESET();
-			  __HAL_RCC_DMA1_RELEASE_RESET();
 			  __HAL_RCC_SPI2_FORCE_RESET();
 			  __HAL_RCC_SPI2_RELEASE_RESET();
+			  u8Spi_Slave_init();
 
-			  printf("spi write complete\r\n");
+			  printf("spi write complete\r\n\n");
 			  u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
 		  }
 	  }
@@ -101,19 +98,26 @@ int main(void)
 	  {
 		  spi_flag 	&= ~SPI_READ_CPLT;
 
-		  if (vSPIcmdParse(spiRcvBuff, SPI_RX_BUFF_LEN) == 0)
+		  u8_spiParse = vSPIcmdParse(spiRcvBuff, SPI_RX_BUFF_LEN);
+
+		  if (u8_spiParse == 1)
 		  {
-			  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN);
-			  u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
+			  /* send reply */
+			  memset(spiSendBuff, 0, SPI_TX_BUFF_LEN*sizeof(spiSendBuff[0]));
+			  for(uint16_t i = 0; i < SPI_TX_BUFF_LEN; i++)
+			  {
+				  spiSendBuff[i] = i;
+			  }
+
+			  spi_flag |= SPI_WR_UPDATE;
 		  }
 		  else
 		  {
-			  /* send reply */
-			  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN);
-			  spi_flag |= SPI_WR_UPDATE;
+			  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN*sizeof(spiRcvBuff[0]));
+			  u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
+			  printf("spi read complete\r\n\n");
 		  }
 
-		  printf("spi read complete\r\n\n");
 	  }
 	  else if (spi_flag & SPI_WR_UPDATE)
 	  {
@@ -126,19 +130,10 @@ int main(void)
 			  u8Spi_Gpio_Init();
 		  }
 
-		  memset(&spiSendBuff[0], 0, SPI_TX_BUFF_LEN);
-
-
-		  for(uint16_t i = 0; i < SPI_TX_BUFF_LEN; i++)
-		  {
-			  spiSendBuff[i] = i;
-		  }
-
-		  //HAL_SPI_DMAStop(&hspi2);
-		  //HAL_SPI_Abort(&hspi2);
 		  __HAL_RCC_SPI2_FORCE_RESET();
 		  __HAL_RCC_SPI2_RELEASE_RESET();
 		  u8Spi_Slave_init();
+
 
 		  HAL_TIM_Base_Start_IT(&htim1);
 		  u8Spi_Slave_sendOnly(spiSendBuff, SPI_TX_BUFF_LEN);
@@ -148,8 +143,6 @@ int main(void)
 	  {
 		  spi_flag 	&= ~SPI_TIMEOUT;
 
-		  //HAL_SPI_DMAStop(&hspi2);
-		  //HAL_SPI_Abort(&hspi2);
 		  __HAL_RCC_SPI2_FORCE_RESET();
 		  __HAL_RCC_SPI2_RELEASE_RESET();
 		  u8Spi_Slave_init();
@@ -169,48 +162,50 @@ int main(void)
   * @param
   * @retval None
   ****************************************************************************/
-static uint8_t vSPIcmdParse(uint8_t *u8p_buff, uint16_t u16_len)
+static uint8_t vSPIcmdParse(int16_t *i16p_buff, uint16_t u16_len)
 {
 	uint8_t retval = 0;
 
-	printf("CMD: %d - %d - %d %d \r\n", u8p_buff[SPI_MODE_BYTE],
-										u8p_buff[SPI_WRITE_CMD_BYTE],
-										u8p_buff[SPI_WRITE_PRM_BYTE],
-										u8p_buff[SPI_WRITE_PRM_BYTE+1]);
+	printf("CMD: %d - %d - %d %d \r\n", i16p_buff[SPI_MODE_BYTE],
+										i16p_buff[SPI_WRITE_CMD_BYTE],
+										i16p_buff[SPI_WRITE_PRM_BYTE],
+										i16p_buff[SPI_WRITE_PRM_BYTE+1]);
 
-	switch (u8p_buff[SPI_MODE_BYTE])
+
+	switch (i16p_buff[SPI_MODE_BYTE])
 	{
 		case SPI_WRITE_REQ:
-			if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_ON)
+			if (i16p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_ON)
 			{
 				printf("scan ON\r\n");
 				retval = 1;
 			}
-			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_OFF)
+			else if (i16p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_OFF)
 			{
 				printf("scan OFF\r\n");
 				retval = 1;
 			}
-			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_NOISE)
+			else if (i16p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_NOISE)
 			{
 				printf("scan noise\r\n");
 				retval = 1;
 			}
-			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_SELF_TX)
+			else if (i16p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_SELF_TX)
 			{
 				printf("scan self tx\r\n");
 				retval = 1;
 			}
-			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_SELF_RX)
+			else if (i16p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_SELF_RX)
 			{
 				printf("scan self rx\r\n");
 				retval = 1;
 			}
-			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_MUTUAL)
+			else if (i16p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_MUTUAL)
 			{
 				printf("scan mutual\r\n");
 				retval = 1;
 			}
+
 			break;
 
 		case SPI_READ_REQ:
