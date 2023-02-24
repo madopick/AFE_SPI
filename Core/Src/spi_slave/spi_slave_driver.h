@@ -10,8 +10,8 @@
 
 #include "main.h"
 
-#define SPI_TX_BUFF_LEN                              256
-#define SPI_RX_BUFF_LEN                              256
+#define SPI_TX_BUFF_LEN                              608
+#define SPI_RX_BUFF_LEN                              20
 
 
 #define SPI_WRITE_CPLT								 (1 << 0)
