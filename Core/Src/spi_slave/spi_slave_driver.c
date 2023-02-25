@@ -32,7 +32,7 @@ uint8_t u8Spi_Slave_init(void)
 	hspi2.Init.CLKPolarity 			= SPI_POLARITY_LOW;
 
 #ifdef NSS_HW
-	hspi2.Init.NSS 					= SPI_NSS_HARD_INPUT
+	hspi2.Init.NSS 					= SPI_NSS_HARD_INPUT;
 #else
 	hspi2.Init.NSS 					= SPI_NSS_SOFT;
 #endif

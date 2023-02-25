@@ -31,7 +31,6 @@
 TIM_HandleTypeDef 	htim1;
 
 /* External variables ---------------------------------------------------------*/
-extern SPI_HandleTypeDef hspi2;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -98,25 +97,31 @@ int main(void)
 	  {
 		  spi_flag 	&= ~SPI_READ_CPLT;
 
+		  memset(spiSendBuff, 0, SPI_TX_BUFF_LEN*sizeof(spiSendBuff[0]));
 		  u8_spiParse = vSPIcmdParse(spiRcvBuff, SPI_RX_BUFF_LEN);
 
 		  if (u8_spiParse == 1)
 		  {
-			  /* send reply */
-			  memset(spiSendBuff, 0, SPI_TX_BUFF_LEN*sizeof(spiSendBuff[0]));
+			  /* send data reply */
 			  for(uint16_t i = 0; i < SPI_TX_BUFF_LEN; i++)
 			  {
 				  spiSendBuff[i] = i;
 			  }
-
-			  spi_flag |= SPI_WR_UPDATE;
 		  }
 		  else
 		  {
-			  memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN*sizeof(spiRcvBuff[0]));
-			  u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
-			  printf("spi read complete\r\n\n");
+			  /* unknown cmd */
+			  spiSendBuff[0] = 0xA5;
+			  spiSendBuff[1] = 0x10;
+			  spiSendBuff[2] = 0x15;
+			  spiSendBuff[3] = 0x5A;
+
+			  //memset(spiRcvBuff, 0, SPI_RX_BUFF_LEN*sizeof(spiRcvBuff[0]));
+			  //u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
+			  //printf("spi read complete\r\n\n");
 		  }
+
+		  spi_flag |= SPI_WR_UPDATE;
 
 	  }
 	  else if (spi_flag & SPI_WR_UPDATE)

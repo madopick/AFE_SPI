@@ -44,7 +44,7 @@ extern "C" {
 
 
 /* Exported macro ------------------------------------------------------------*/
-
+#define NSS_HW
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(char * file, int line);
