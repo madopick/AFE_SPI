@@ -28,7 +28,7 @@ uint8_t u8Spi_Slave_init(void)
 	hspi2.Init.Mode 				= SPI_MODE_SLAVE;
 	hspi2.Init.Direction 			= SPI_DIRECTION_2LINES;
 	hspi2.Init.DataSize 			= SPI_DATASIZE_16BIT;
-	hspi2.Init.CLKPhase 			= SPI_PHASE_1EDGE;
+	hspi2.Init.CLKPhase 			= SPI_PHASE_2EDGE;
 	hspi2.Init.CLKPolarity 			= SPI_POLARITY_LOW;
 
 #ifdef NSS_HW
