@@ -89,7 +89,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 
 	GPIO_InitStruct.Pin 		= GPIO_PIN_10;
 	GPIO_InitStruct.Mode 		= GPIO_MODE_AF_PP;
-	GPIO_InitStruct.Pull 		= GPIO_NOPULL;
+	GPIO_InitStruct.Pull 		= GPIO_PULLUP;
 	GPIO_InitStruct.Speed 		= GPIO_SPEED_FAST;
 	GPIO_InitStruct.Alternate 	= GPIO_AF5_SPI2;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
