@@ -85,10 +85,10 @@ uint8_t u8Spi_Gpio_Init(void)
   *******************************************/
 uint8_t u8Spi_Slave_rcvOnly(int16_t *i16p_RcvBuff, uint16_t u16_len)
 {
-	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
-	{
-		HAL_Delay(10);
-	}
+//	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
+//	{
+//		HAL_Delay(10);
+//	}
 
 	spiAFE.i16p_Rcvbuf 	= i16p_RcvBuff;
 	spiAFE.u16_len		= u16_len;
@@ -136,10 +136,10 @@ uint8_t u8Spi_Slave_sendOnly(int16_t *i16p_SendBuff, uint16_t u16_len)
   *******************************************/
 uint8_t u8Spi_Slave_sendRcv(int16_t *i16p_Senddata, int16_t *i16p_Rcvdata, uint16_t length)
 {
-	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
-	{
-		HAL_Delay(10);
-	}
+//	while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
+//	{
+//		HAL_Delay(10);
+//	}
 
 	spiAFE.i16p_Sentbuf = i16p_Senddata;
 	spiAFE.i16p_Rcvbuf 	= i16p_Rcvdata;

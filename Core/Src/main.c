@@ -40,7 +40,7 @@ static void MX_TIM1_Init(void);
 static uint8_t vSPIcmdParse(uint8_t* u8p_buff, uint16_t u16_len);
 
 /* Private user code ---------------------------------------------------------*/
-static uint8_t spi_flag;
+static volatile uint8_t spi_flag;
 static int16_t spiSendBuff[SPI_TX_BUFF_LEN];
 static int16_t spiRcvBuff[SPI_RX_BUFF_LEN];
 static uint8_t u8btnPressed;
@@ -85,9 +85,9 @@ int main(void)
 		  {
 			  HAL_TIM_Base_Stop_IT(&htim1);
 
-			  __HAL_RCC_SPI2_FORCE_RESET();
-			  __HAL_RCC_SPI2_RELEASE_RESET();
-			  u8Spi_Slave_init();
+//			  __HAL_RCC_SPI2_FORCE_RESET();
+//			  __HAL_RCC_SPI2_RELEASE_RESET();
+//			  u8Spi_Slave_init();
 
 			  printf("spi write complete\r\n\n");
 			  u8Spi_Slave_rcvOnly(spiRcvBuff, SPI_RX_BUFF_LEN);
@@ -135,9 +135,9 @@ int main(void)
 			  u8Spi_Gpio_Init();
 		  }
 
-		  __HAL_RCC_SPI2_FORCE_RESET();
-		  __HAL_RCC_SPI2_RELEASE_RESET();
-		  u8Spi_Slave_init();
+//		  __HAL_RCC_SPI2_FORCE_RESET();
+//		  __HAL_RCC_SPI2_RELEASE_RESET();
+//		  u8Spi_Slave_init();
 
 
 		  HAL_TIM_Base_Start_IT(&htim1);
@@ -171,7 +171,7 @@ static uint8_t vSPIcmdParse(uint8_t* u8p_buff, uint16_t u16_len)
 {
 	uint8_t retval = 0;
 
-#if 1
+#if 0
 	printf("CMD: %d - %d - %d %d \r\n", u8p_buff[SPI_MODE_BYTE],
 										u8p_buff[SPI_WRITE_CMD_BYTE],
 										u8p_buff[SPI_WRITE_PRM_BYTE],
