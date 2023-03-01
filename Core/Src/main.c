@@ -171,49 +171,49 @@ static uint8_t vSPIcmdParse(uint8_t* u8p_buff, uint16_t u16_len)
 {
 	uint8_t retval = 0;
 
+#if 1
 	printf("CMD: %d - %d - %d %d \r\n", u8p_buff[SPI_MODE_BYTE],
 										u8p_buff[SPI_WRITE_CMD_BYTE],
 										u8p_buff[SPI_WRITE_PRM_BYTE],
 										u8p_buff[SPI_WRITE_PRM_BYTE+1]);
-
+#endif
 
 	switch (u8p_buff[SPI_MODE_BYTE])
 	{
-		case SPI_WRITE_REQ:
-			if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_ON)
+		case AFE_REQ_WRITE:
+			if (u8p_buff[SPI_WRITE_CMD_BYTE] == AFE_CMD_ON)
 			{
 				printf("scan ON\r\n");
 				retval = 1;
 			}
-			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_OFF)
+			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == AFE_CMD_OFF)
 			{
 				printf("scan OFF\r\n");
 				retval = 1;
 			}
-			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_NOISE)
+			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == AFE_CMD_SCAN_NOISE)
 			{
 				printf("scan noise\r\n");
 				retval = 1;
 			}
-			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_SELF_TX)
+			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == AFE_CMD_SCAN_SELF_TX)
 			{
 				printf("scan self tx\r\n");
 				retval = 1;
 			}
-			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_SELF_RX)
+			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == AFE_CMD_SCAN_SELF_RX)
 			{
 				printf("scan self rx\r\n");
 				retval = 1;
 			}
-			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == SPI_SCAN_MUTUAL)
+			else if (u8p_buff[SPI_WRITE_CMD_BYTE] == AFE_CMD_SCAN_MUTUAL)
 			{
 				printf("scan mutual\r\n");
 				retval = 1;
 			}
-
 			break;
 
-		case SPI_READ_REQ:
+		case AFE_REQ_READ:
 			printf("read request\r\n");
 			break;
 
@@ -224,7 +224,6 @@ static uint8_t vSPIcmdParse(uint8_t* u8p_buff, uint16_t u16_len)
 
 	return (retval);
 }
-
 
 
 /******************************************************************************
